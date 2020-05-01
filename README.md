@@ -26,9 +26,11 @@ module.exports = config;
 
 ## Confirm it works
 * ```npm start``` to run it with nodemon, or ```node index.js```
-* go to localhost:<port>/connect, you will be redirected to login to Jira. You should see results:
+* go to localhost:<port>/connect, you will be redirected to login to Jira and allow to access protected resource. 
+<img src="docs/img/jira-screen.png" width="500"/>
+You should see results in the browser:
 <img src="docs/img/app-get-projects.png" width="500"/>
-* expected output in the terminal from which required elements of authorization header should be copied:
+and expected output in the terminal from which required elements of authorization header should be copied:
 <img src="docs/img/output.png" width="500"/>
 
 
