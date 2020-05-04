@@ -3,6 +3,7 @@ const fs = require('fs');
 const OAuth = require('oauth').OAuth;
 const express = require('express');
 const session = require('express-session');
+const helmet  = require('helmet')
 const config = require('./config');
 
 const privateKeyData = fs.readFileSync(config["consumerPrivateKeyFile"], "utf8");
@@ -14,6 +15,8 @@ const oauthUrl = `${config.jiraUrl}/plugins/servlet/oauth/`;
 const protectedResource = `${config.jiraUrl}/rest/api/2/project`
 const port = process.env.PORT || 3000;
 const callbackUrl = `http://localhost:${port}/callback`
+const sessionSecret = process.env.SESSION_SECRET
+const sessionCookieExpireDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1))
 
 // monkey-patch OAuth.get: 
 // In oauth library code, OAuth.get calls _performSecureRequest with next-to-last argument null ,
@@ -36,12 +39,17 @@ const consumer = new OAuth(
 );
 
 
-const app = module.exports = express();
+const app = express();
+app.use(helmet())
 app.use(session({
-  secret: 'ssshhhh!',
+  secret: sessionSecret,
   resave: false,
-  saveUninitialized: true,
-  cookie: {secure: false}
+  saveUninitialized: false, //don't save empty sessions
+  cookie: {
+    secure: false,         //not limited to https for now
+    httpOnly: true,        //cookie is sent only over HTTP(S), not client js, helps protect against XSS
+    expires: sessionCookieExpireDate
+  }
 }));
 app.use((req, res, next) => {
   res.session = req.session;
@@ -52,7 +60,7 @@ app.get('/', (request, response) => response.send('ok'));
 app.get('/connect', (request, response) => {
   consumer.getOAuthRequestToken((error, oauthToken, oauthTokenSecret) => {
       if (error) {
-        response.send('Error getting Request token');
+        response.send(`Error getting Request token. ${error}`);
       }
       else {
         request.session.oauthRequestToken = oauthToken;
