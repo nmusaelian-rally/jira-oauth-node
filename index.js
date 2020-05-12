@@ -5,7 +5,9 @@ const fs = require('fs');
 const OAuth = require('oauth').OAuth;
 const express = require('express');
 const session = require('express-session');
-const helmet = require('helmet');
+//const helmet = require('helmet');
+var http = require('http');
+const https = require('https')
 const config = require('./config');
 
 const privateKeyData = fs.readFileSync(
@@ -18,9 +20,8 @@ const oauthVersion = '1.0';
 
 const oauthUrl = `${config.jiraUrl}/plugins/servlet/oauth/`;
 //const protectedResource = `${config.jiraUrl}/rest/api/2/project`;
-const port = 9999;
-//const callbackUrl = `http://localhost:${port}/callback`;
-const callbackUrl = `http://tenfoot-build-01.f4tech.com:${port}/callback`;
+const port = 7443;
+const callbackUrl = `https://localhost:${port}/callback`;
 const sessionSecret = `secret ${Math.random()}`;
 const sessionCookieExpireDate = new Date(
   new Date().setFullYear(new Date().getFullYear() + 1)
@@ -63,7 +64,7 @@ const consumer = new OAuth(
 
 const app = express();
 app.set('port', port);
-app.use(helmet());
+//app.use(helmet());
 app.use(
   session({
     secret: sessionSecret,
@@ -111,4 +112,13 @@ app.get('/callback', (request, response) => {
   );
 });
 
+https.createServer({
+  key: fs.readFileSync('server-key.pem'),
+  cert: fs.readFileSync('server-crt.pem'),
+  ca: fs.readFileSync('ca-crt.pem')
+}, app)
 app.listen(port);
+
+// http.createServer(express().use(function(req,res){
+//   res.redirect('https://localhost:8443' + req.url);
+// })).listen(9999);

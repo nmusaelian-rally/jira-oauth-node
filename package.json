@@ -9,6 +9,7 @@
     "express": "^4.17.1",
     "express-session": "^1.16.1",
     "helmet": "^3.22.0",
+    "https": "^1.0.0",
     "oauth": "^0.9.15"
   },
   "devDependencies": {
